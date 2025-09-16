@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
@@ -74,11 +75,9 @@ const menuItems = [
   },
 ];
 
-interface SidebarProps {
-  activeItem?: string;
-}
-
-const Sidebar = ({ activeItem = '/' }: SidebarProps) => {
+const Sidebar = () => {
+  const location = useLocation();
+  
   const containerVariants = {
     hidden: { opacity: 0, x: -20 },
     visible: {
@@ -120,35 +119,37 @@ const Sidebar = ({ activeItem = '/' }: SidebarProps) => {
         <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const isActive = activeItem === item.path;
+            const isActive = location.pathname === item.path;
             
             return (
               <motion.div key={item.path} variants={itemVariants}>
-                <Button
-                  variant={isActive ? 'default' : 'ghost'}
-                  className={cn(
-                    'w-full justify-start h-11 transition-all duration-200',
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  )}
-                >
-                  <Icon className="mr-3 h-5 w-5" />
-                  <span className="flex-1 text-left">{item.title}</span>
-                  {item.badge && (
-                    <span
-                      className={cn(
-                        'px-2 py-1 text-xs font-medium rounded-full',
-                        item.color === 'warning' && 'bg-warning/10 text-warning',
-                        item.color === 'success' && 'bg-success/10 text-success',
-                        item.color === 'info' && 'bg-info/10 text-info',
-                        !item.color && 'bg-muted text-muted-foreground'
-                      )}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </Button>
+                <Link to={item.path}>
+                  <Button
+                    variant={isActive ? 'default' : 'ghost'}
+                    className={cn(
+                      'w-full justify-start h-11 transition-all duration-200',
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    )}
+                  >
+                    <Icon className="mr-3 h-5 w-5" />
+                    <span className="flex-1 text-left">{item.title}</span>
+                    {item.badge && (
+                      <span
+                        className={cn(
+                          'px-2 py-1 text-xs font-medium rounded-full',
+                          item.color === 'warning' && 'bg-warning/10 text-warning',
+                          item.color === 'success' && 'bg-success/10 text-success',
+                          item.color === 'info' && 'bg-info/10 text-info',
+                          !item.color && 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
               </motion.div>
             );
           })}
