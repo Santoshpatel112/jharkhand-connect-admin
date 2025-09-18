@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Bell, Search, Settings, User, LogOut } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,10 +12,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import jharkhandLogo from '@/assets/jharkhand-logo.png';
 
 const Header = () => {
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const notificationCount = 5;
+
+  const handleLogout = () => {
+    signOut();
+  };
 
   return (
     <motion.header
@@ -81,16 +89,28 @@ const Header = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 text-white hover:bg-white/10">
-                <div className="h-8 w-8 rounded-full bg-saffron flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
-                </div>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
+                  <AvatarFallback className="bg-saffron text-white font-semibold">
+                    {user?.firstName?.[0]}{user?.lastName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium">Admin User</p>
+                  <p className="text-sm font-medium">{user?.fullName || "User"}</p>
                   <p className="text-xs text-white/70">Administrator</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <div className="flex items-center justify-start gap-2 p-2">
+                <div className="flex flex-col space-y-1 leading-none">
+                  <p className="font-medium">{user?.fullName || "User"}</p>
+                  <p className="w-[200px] truncate text-sm text-muted-foreground">
+                    {user?.emailAddresses?.[0]?.emailAddress}
+                  </p>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
                 Profile
@@ -100,7 +120,10 @@ const Header = () => {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem 
+                className="text-destructive cursor-pointer"
+                onClick={handleLogout}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
