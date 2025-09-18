@@ -64,23 +64,27 @@ const Auth = () => {
             >
               {isSignUp ? (
                 <SignUp 
+                  redirectUrl="/"
                   appearance={{
                     elements: {
                       rootBox: "w-full",
                       card: "shadow-none border-0 bg-transparent",
                       headerTitle: "hidden",
                       headerSubtitle: "hidden",
+                      formButtonPrimary: "bg-jharkhand-primary hover:bg-jharkhand-primary/90",
                     }
                   }}
                 />
               ) : (
                 <SignIn 
+                  redirectUrl="/"
                   appearance={{
                     elements: {
-                      rootBox: "w-full",
+                      rootBox: "w-full", 
                       card: "shadow-none border-0 bg-transparent",
                       headerTitle: "hidden",
                       headerSubtitle: "hidden",
+                      formButtonPrimary: "bg-jharkhand-primary hover:bg-jharkhand-primary/90",
                     }
                   }}
                 />
