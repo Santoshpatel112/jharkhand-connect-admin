@@ -14,12 +14,20 @@ import StatsCard from './StatsCard';
 import RecentReports from './RecentReports';
 import AnalyticsChart from './AnalyticsChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSupabaseSync } from '@/hooks/useSupabaseSync';
+import { useReportStats } from '@/hooks/useCivicReports';
 
 const Dashboard = () => {
+  // Sync user data with Supabase
+  useSupabaseSync();
+  
+  // Fetch real stats from Supabase
+  const { data: stats, isLoading } = useReportStats();
+
   const statsData = [
     {
       title: 'Total Reports',
-      value: 1248,
+      value: stats?.total || 0,
       change: '+12% from last month',
       changeType: 'positive' as const,
       icon: FileText,
@@ -28,7 +36,7 @@ const Dashboard = () => {
     },
     {
       title: 'Pending Issues',
-      value: 42,
+      value: stats?.pending || 0,
       change: '-8% from last week',
       changeType: 'positive' as const,
       icon: Clock,
@@ -36,8 +44,8 @@ const Dashboard = () => {
       delay: 0.1,
     },
     {
-      title: 'Resolved Today',
-      value: 18,
+      title: 'In Progress',
+      value: stats?.in_progress || 0,
       change: '+25% from yesterday',
       changeType: 'positive' as const,
       icon: CheckCircle,
@@ -45,15 +53,23 @@ const Dashboard = () => {
       delay: 0.2,
     },
     {
-      title: 'Critical Issues',
-      value: 7,
-      change: 'Needs attention',
-      changeType: 'negative' as const,
+      title: 'Resolved',
+      value: stats?.resolved || 0,
+      change: 'Great progress!',
+      changeType: 'positive' as const,
       icon: AlertTriangle,
       color: 'info' as const,
       delay: 0.3,
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-dashboard-bg flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-jharkhand-primary"></div>
+      </div>
+    );
+  }
 
   const quickStats = [
     {

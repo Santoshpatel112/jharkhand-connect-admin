@@ -4,90 +4,55 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Eye, MapPin, Calendar, ArrowRight } from 'lucide-react';
+import { Eye, MapPin, Calendar, ArrowRight, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-
-interface Report {
-  id: string;
-  title: string;
-  description: string;
-  status: 'submitted' | 'progress' | 'resolved';
-  citizenName: string;
-  location: string;
-  date: Date;
-  priority: 'low' | 'medium' | 'high';
-  category: string;
-}
-
-const mockReports: Report[] = [
-  {
-    id: 'RPT001',
-    title: 'Pothole on Main Road',
-    description: 'Large pothole causing traffic issues near City Center',
-    status: 'progress',
-    citizenName: 'Rajesh Kumar',
-    location: 'Ranchi City Center',
-    date: new Date('2024-01-15'),
-    priority: 'high',
-    category: 'Road Infrastructure',
-  },
-  {
-    id: 'RPT002', 
-    title: 'Street Light Not Working',
-    description: 'Street lights have been out for 3 days in residential area',
-    status: 'submitted',
-    citizenName: 'Priya Sharma',
-    location: 'Hinoo, Ranchi',
-    date: new Date('2024-01-14'),
-    priority: 'medium',
-    category: 'Electricity',
-  },
-  {
-    id: 'RPT003',
-    title: 'Water Supply Issue',
-    description: 'No water supply for the past week in the locality',
-    status: 'resolved',
-    citizenName: 'Amit Singh',
-    location: 'Doranda, Ranchi',
-    date: new Date('2024-01-12'),
-    priority: 'high',
-    category: 'Water Supply',
-  },
-  {
-    id: 'RPT004',
-    title: 'Garbage Collection Delay',
-    description: 'Garbage has not been collected for 5 days',
-    status: 'progress',
-    citizenName: 'Sunita Devi',
-    location: 'Kanke, Ranchi',
-    date: new Date('2024-01-13'),
-    priority: 'medium',
-    category: 'Waste Management',
-  },
-];
-
-const statusConfig = {
-  submitted: {
-    label: 'Submitted',
-    className: 'status-submitted',
-  },
-  progress: {
-    label: 'In Progress',
-    className: 'status-progress',
-  },
-  resolved: {
-    label: 'Resolved',
-    className: 'status-resolved',
-  },
-};
-
-const priorityConfig = {
-  low: { label: 'Low', className: 'bg-muted text-muted-foreground' },
-  medium: { label: 'Medium', className: 'bg-warning/10 text-warning' },
-  high: { label: 'High', className: 'bg-destructive/10 text-destructive' },
-};
+import { useCivicReports } from '@/hooks/useCivicReports';
 
 const RecentReports = () => {
+  const { data: reports = [], isLoading } = useCivicReports();
+
+  const statusConfig = {
+    pending: {
+      label: 'Pending',
+      className: 'bg-yellow-100 text-yellow-800',
+    },
+    in_progress: {
+      label: 'In Progress',
+      className: 'bg-blue-100 text-blue-800',
+    },
+    resolved: {
+      label: 'Resolved',
+      className: 'bg-green-100 text-green-800',
+    },
+  };
+
+  const priorityConfig = {
+    low: { label: 'Low', className: 'bg-muted text-muted-foreground' },
+    medium: { label: 'Medium', className: 'bg-warning/10 text-warning' },
+    high: { label: 'High', className: 'bg-destructive/10 text-destructive' },
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="border-0 shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-jharkhand-primary" />
+            Recent Reports
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const recentReports = reports.slice(0, 5);
   return (
     <Card className="border-0 shadow-card">
       <CardHeader className="pb-4">
@@ -105,7 +70,7 @@ const RecentReports = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {mockReports.map((report, index) => (
+        {recentReports.map((report, index) => (
           <motion.div
             key={report.id}
             initial={{ opacity: 0, x: -20 }}
@@ -119,8 +84,8 @@ const RecentReports = () => {
                   <h4 className="font-medium text-foreground group-hover:text-primary transition-colors">
                     {report.title}
                   </h4>
-                  <Badge className={statusConfig[report.status].className}>
-                    {statusConfig[report.status].label}
+                  <Badge className={statusConfig[report.status as keyof typeof statusConfig]?.className || statusConfig.pending.className}>
+                    {statusConfig[report.status as keyof typeof statusConfig]?.label || 'Pending'}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">
@@ -137,27 +102,27 @@ const RecentReports = () => {
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-6 w-6">
                     <AvatarFallback className="text-xs">
-                      {report.citizenName.split(' ').map(n => n[0]).join('')}
+                      {report.user_id.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm text-muted-foreground">
-                    {report.citizenName}
+                    User {report.user_id.substring(0, 8)}
                   </span>
                 </div>
                 
                 <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                   <MapPin className="h-3 w-3" />
-                  <span>{report.location}</span>
+                  <span>{report.address || 'Unknown location'}</span>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
-                <Badge className={priorityConfig[report.priority].className}>
-                  {priorityConfig[report.priority].label}
+                <Badge className={priorityConfig[report.priority as keyof typeof priorityConfig]?.className || priorityConfig.medium.className}>
+                  {priorityConfig[report.priority as keyof typeof priorityConfig]?.label || 'Medium'}
                 </Badge>
                 <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  <span>{format(report.date, 'MMM dd')}</span>
+                  <span>{format(new Date(report.created_at), 'MMM dd')}</span>
                 </div>
               </div>
             </div>

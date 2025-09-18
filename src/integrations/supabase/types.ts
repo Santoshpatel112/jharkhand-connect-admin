@@ -14,7 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      citizens: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      civic_reports: {
+        Row: {
+          address: string | null
+          audio_url: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          location_lat: number | null
+          location_lng: number | null
+          priority: string
+          resolved_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          audio_url?: string | null
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          audio_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      report_updates: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          report_id: string
+          status: string
+          updated_by: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          report_id: string
+          status: string
+          updated_by: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          report_id?: string
+          status?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_updates_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "civic_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
