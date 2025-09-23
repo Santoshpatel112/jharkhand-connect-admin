@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Search, Settings, User, LogOut } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { Bell, Search, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,13 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import jharkhandLogo from '@/assets/jharkhand-logo.png';
 
 const Header = () => {
-  const { user } = useUser();
-  const { signOut } = useClerk();
   const notificationCount = 5;
-
-  const handleLogout = () => {
-    signOut();
-  };
 
   return (
     <motion.header
@@ -90,23 +83,22 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 text-white hover:bg-white/10">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
                   <AvatarFallback className="bg-saffron text-white font-semibold">
-                    {user?.firstName?.[0]}{user?.lastName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase()}
+                    A
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium">{user?.fullName || "User"}</p>
-                  <p className="text-xs text-white/70">Administrator</p>
+                  <p className="text-sm font-medium">Administrator</p>
+                  <p className="text-xs text-white/70">Government Officer</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center justify-start gap-2 p-2">
                 <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium">{user?.fullName || "User"}</p>
+                  <p className="font-medium">Administrator</p>
                   <p className="w-[200px] truncate text-sm text-muted-foreground">
-                    {user?.emailAddresses?.[0]?.emailAddress}
+                    admin@jharkhand.gov.in
                   </p>
                 </div>
               </div>
@@ -118,14 +110,6 @@ const Header = () => {
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-destructive cursor-pointer"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

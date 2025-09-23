@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useUser } from '@clerk/clerk-react';
 
 export interface Citizen {
   id: string;
@@ -14,8 +13,6 @@ export interface Citizen {
 }
 
 export const useCitizens = () => {
-  const { user } = useUser();
-
   return useQuery({
     queryKey: ['citizens'],
     queryFn: async (): Promise<Citizen[]> => {
@@ -30,6 +27,5 @@ export const useCitizens = () => {
 
       return data || [];
     },
-    enabled: !!user,
   });
 };
