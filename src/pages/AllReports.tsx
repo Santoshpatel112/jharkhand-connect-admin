@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Eye, MapPin, Calendar, MoreVertical } from 'lucide-react';
+import { Search, Filter, Eye, MapPin, Calendar, MoreVertical, User, Phone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,70 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import ReportDetailsModal from '@/components/reports/ReportDetailsModal';
+import AssignOfficerModal from '@/components/reports/AssignOfficerModal';
+import DataTable from '@/components/common/DataTable';
 import { format } from 'date-fns';
-
-const mockReports = [
-  {
-    id: 'RPT001',
-    title: 'Pothole on Main Road',
-    description: 'Large pothole causing traffic issues near City Center. Multiple citizens have reported vehicle damage.',
-    status: 'progress',
-    citizenName: 'Rajesh Kumar',
-    citizenPhone: '+91 9876543210',
-    location: 'Ranchi City Center, Main Road',
-    coordinates: '23.3441, 85.3096',
-    date: new Date('2024-01-15'),
-    priority: 'high',
-    category: 'Road Infrastructure',
-    assignedTo: 'PWD Team A',
-  },
-  {
-    id: 'RPT002',
-    title: 'Street Light Not Working',
-    description: 'Street lights have been out for 3 days in residential area. Safety concern for pedestrians.',
-    status: 'submitted',
-    citizenName: 'Priya Sharma',
-    citizenPhone: '+91 9876543211',
-    location: 'Hinoo, Ranchi - Sector 2',
-    coordinates: '23.3258, 85.3094',
-    date: new Date('2024-01-14'),
-    priority: 'medium',
-    category: 'Electricity',
-    assignedTo: 'Unassigned',
-  },
-  {
-    id: 'RPT003',
-    title: 'Water Supply Issue',
-    description: 'No water supply for the past week in the locality. Affecting 50+ households.',
-    status: 'resolved',
-    citizenName: 'Amit Singh',
-    citizenPhone: '+91 9876543212',
-    location: 'Doranda, Ranchi - Ward 15',
-    coordinates: '23.3703, 85.3312',
-    date: new Date('2024-01-12'),
-    priority: 'high',
-    category: 'Water Supply',
-    assignedTo: 'Water Board Team',
-  },
-  {
-    id: 'RPT004',
-    title: 'Garbage Collection Delay',
-    description: 'Garbage has not been collected for 5 days. Creating hygiene issues.',
-    status: 'progress',
-    citizenName: 'Sunita Devi',
-    citizenPhone: '+91 9876543213',
-    location: 'Kanke, Ranchi - Block C',
-    coordinates: '23.4241, 85.3381',
-    date: new Date('2024-01-13'),
-    priority: 'medium',
-    category: 'Waste Management',
-    assignedTo: 'Sanitation Dept',
-  },
-];
+import { useCivicReports } from '@/hooks/useCivicReports';
 
 const statusConfig = {
-  submitted: { label: 'Submitted', className: 'status-submitted' },
-  progress: { label: 'In Progress', className: 'status-progress' },
+  pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
+  in_progress: { label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
   resolved: { label: 'Resolved', className: 'status-resolved' },
 };
 
@@ -93,19 +38,123 @@ const priorityConfig = {
 };
 
 const AllReports = () => {
+  const { data: reports = [], isLoading } = useCivicReports();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
 
-  const filteredReports = mockReports.filter(report => {
+  const filteredReports = reports.filter(report => {
     const matchesSearch = report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         report.citizenName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         report.location.toLowerCase().includes(searchTerm.toLowerCase());
+                         report.user_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (report.address || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || report.priority === priorityFilter;
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const handleViewDetails = (report) => {
+    setSelectedReport(report);
+    setShowDetailsModal(true);
+  };
+
+  const handleAssignOfficer = (report) => {
+    setSelectedReport(report);
+    setShowAssignModal(true);
+  };
+
+  const handleAssignment = (officerId: string, notes: string) => {
+    console.log('Assigning officer:', officerId, 'to report:', selectedReport?.id, 'with notes:', notes);
+    // Here you would typically make an API call to assign the officer
+  };
+
+  const columns = [
+    {
+      key: 'id',
+      label: 'Report ID',
+      sortable: true,
+      render: (value) => (
+        <span className="font-mono text-sm">{value}</span>
+      ),
+    },
+    {
+      key: 'title',
+      label: 'Title',
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <p className="font-medium">{value}</p>
+          <p className="text-sm text-muted-foreground line-clamp-1">{row.description}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (value) => (
+        <Badge className={statusConfig[value]?.className}>
+          {statusConfig[value]?.label || 'Unknown'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'priority',
+      label: 'Priority',
+      sortable: true,
+      render: (value) => (
+        <Badge className={priorityConfig[value]?.className}>
+          {priorityConfig[value]?.label || 'Medium'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'user_id',
+      label: 'Citizen',
+      render: (value) => (
+        <div className="flex items-center space-x-2">
+          <Avatar className="h-6 w-6">
+            <AvatarFallback className="text-xs">
+              {value.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span className="text-sm">{value.substring(0, 8)}...</span>
+        </div>
+      ),
+    },
+    {
+      key: 'address',
+      label: 'Location',
+      render: (value) => (
+        <div className="flex items-center space-x-1">
+          <MapPin className="h-3 w-3 text-muted-foreground" />
+          <span className="text-sm">{value || 'Not specified'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'created_at',
+      label: 'Date',
+      sortable: true,
+      render: (value) => (
+        <div className="flex items-center space-x-1">
+          <Calendar className="h-3 w-3 text-muted-foreground" />
+          <span className="text-sm">{format(new Date(value), 'MMM dd, yyyy')}</span>
+        </div>
+      ),
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-dashboard-bg flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-dashboard-bg p-6 space-y-6">
@@ -161,8 +210,8 @@ const AllReports = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="progress">In Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="resolved">Resolved</SelectItem>
                 </SelectContent>
               </Select>
@@ -183,115 +232,53 @@ const AllReports = () => {
         </Card>
       </motion.div>
 
-      {/* Reports List */}
-      <div className="space-y-4">
-        {filteredReports.map((report, index) => (
-          <motion.div
-            key={report.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="border-0 shadow-card hover:shadow-elegant transition-all duration-300 hover-lift">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1 space-y-3">
-                    {/* Header Row */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="font-semibold text-lg text-foreground">
-                          {report.title}
-                        </h3>
-                        <Badge className={statusConfig[report.status].className}>
-                          {statusConfig[report.status].label}
-                        </Badge>
-                        <Badge className={priorityConfig[report.priority].className}>
-                          {priorityConfig[report.priority].label}
-                        </Badge>
-                      </div>
-                      <span className="text-sm font-mono text-muted-foreground">
-                        {report.id}
-                      </span>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-muted-foreground leading-relaxed">
-                      {report.description}
-                    </p>
-
-                    {/* Details Row */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs">
-                            {report.citizenName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{report.citizenName}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>{report.location}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{format(report.date, 'MMM dd, yyyy')}</span>
-                      </div>
-                    </div>
-
-                    {/* Assignment */}
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm">
-                        <span className="text-muted-foreground">Assigned to: </span>
-                        <span className={`font-medium ${report.assignedTo === 'Unassigned' ? 'text-destructive' : 'text-success'}`}>
-                          {report.assignedTo}
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        Category: {report.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      View Details
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit Report</DropdownMenuItem>
-                        <DropdownMenuItem>Assign Officer</DropdownMenuItem>
-                        <DropdownMenuItem>Update Status</DropdownMenuItem>
-                        <DropdownMenuItem>View Location</DropdownMenuItem>
-                        <DropdownMenuItem>Contact Citizen</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Results Summary */}
+      {/* Reports Table */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-center text-muted-foreground"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
       >
-        Showing {filteredReports.length} of {mockReports.length} reports
+        <DataTable
+          title="All Civic Reports"
+          data={filteredReports}
+          columns={columns}
+          onRowClick={handleViewDetails}
+          actions={(row) => (
+            <>
+              <DropdownMenuItem onClick={() => handleViewDetails(row)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAssignOfficer(row)}>
+                <User className="mr-2 h-4 w-4" />
+                Assign Officer
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Phone className="mr-2 h-4 w-4" />
+                Contact Citizen
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <MapPin className="mr-2 h-4 w-4" />
+                View Location
+              </DropdownMenuItem>
+            </>
+          )}
+        />
       </motion.div>
+
+      {/* Modals */}
+      <ReportDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        report={selectedReport}
+      />
+      
+      <AssignOfficerModal
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        reportId={selectedReport?.id || ''}
+        onAssign={handleAssignment}
+      />
     </div>
   );
 };
